@@ -9,6 +9,12 @@ import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
 
+import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +35,10 @@ class GameView extends View {
     private Paint backgroundPaint;
     private Paint elementPaint;
     private List<Block> blockList;
+    public static List<Bitmap> blockTierList;
     private Rect background;
+    private ArrayList<Prize> prizeList;
+    private Bitmap prizeBitmap;
 
     public GameView(Context context) {
         super(context);
@@ -61,21 +70,42 @@ class GameView extends View {
             height = getHeight() - 4;//wyrownanie ekrany dla wygody, wspanialy przyklad antywzorca MAGIC NUMBER :)
             xCenter = width / 2;
             yCenter = height / 2;
-            player = new Player(xCenter, height - 200);
+            player = new Player(xCenter, height - 200, BitmapFactory.decodeResource(getResources(), R.drawable.player));
             ball = new Ball(xCenter, yCenter);
             backgroundPaint = new Paint();
             backgroundPaint.setARGB(255, 0, 0, 0);
             elementPaint = new Paint();
             elementPaint.setARGB(255, 255, 255, 255);
             blockList = new ArrayList<>();
-            for (int i = 54; i < width; i += 108) {
-                for (int q = 20; q < 200; q += 40) {
-                    BlockType type = BlockType.YELLOW;
-                    blockList.add(new Block(i, q, type.getLives(), BitmapFactory.decodeResource(getResources(), type.getColor())));
+            prizeList = new ArrayList<>();
+            blockTierList = new ArrayList<>();
+            blockTierList.add(BitmapFactory.decodeResource(getResources(), R.drawable.yellow_block));
+            blockTierList.add(BitmapFactory.decodeResource(getResources(), R.drawable.orange_block));
+            blockTierList.add(BitmapFactory.decodeResource(getResources(), R.drawable.red_block));
+            prizeBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.prize);
+            InputStream inputStream = getResources().openRawResource(R.raw.level1);
+            try {
+                String jsonString = IOUtils.toString(inputStream);
+                JSONObject jsonObject = new JSONObject(jsonString);
+                JSONArray array= jsonObject.getJSONArray("blocks");
+                for (int i =0; i < array.length(); i++) {
+                    int value = array.getInt(i);
+                    if (value == 0) {
+                        blockList.add(null);
+                    }
+                    else {
+                        int x = 54 + (i%10)*108;
+                        int y = 20 + (i/10)*40;
+                        blockList.add(new Block(x,y,value,blockTierList.get(value-1)));
+                    }
                 }
-                background = new Rect(0, 0, width, height);
-                isSetup = false;
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+            IOUtils.closeQuietly(inputStream);
+
+            background = new Rect(0, 0, width, height);
+            isSetup = false;
         }
 
         //Background
@@ -83,13 +113,20 @@ class GameView extends View {
 
         //Player
         canvas.drawRect(player.getRect(), elementPaint);
+        //canvas.drawBitmap(player.getBitmap(), null, player.getRect(), null);
 
         //Ball
         canvas.drawRect(ball.getRect(), elementPaint);
 
         //Blocks
         for (Block b : blockList) {
-            canvas.drawBitmap(b.getBitmap(), null, b.getRect(), null);
+            if (b != null) {
+                canvas.drawBitmap(b.getBitmap(), null, b.getRect(), null);
+            }
+        }
+
+        for (Prize prize : prizeList) {
+            canvas.drawBitmap(prize.getBitmap(), null, prize.getRect(), null);
         }
 
         //Invalidate view
@@ -131,31 +168,61 @@ class GameView extends View {
         //Kolizja z bloczkami
         else {
             boolean collisionOccured = false;
-            Block blockToBeRemoved = null;
+            Block collidedBlock = null;
             for (Block block : blockList) {
-                Rect rBlock = block.getRect();
-                if (rNextBall.intersect(rBlock)) {
-                    collisionOccured = true;
-                    blockToBeRemoved = block;
-                    int side = checkCollisionSide(block, ball);
-                    switch (side) {
-                        case LEFT:
-                        case RIGHT:
-                            ball.reboundHorizontally();
-                            break;
-                        case TOP:
-                        case BOTTOM:
-                            ball.reboundVertically();
-                            break;
+                if (block != null) {
+                    Rect rBlock = block.getRect();
+                    if (rNextBall.intersect(rBlock)) {
+                        collisionOccured = true;
+                        collidedBlock = block;
+                        int side = checkCollisionSide(block, ball);
+                        switch (side) {
+                            case LEFT:
+                            case RIGHT:
+                                ball.reboundHorizontally();
+                                break;
+                            case TOP:
+                            case BOTTOM:
+                                ball.reboundVertically();
+                                break;
+                        }
                     }
-                }
-                if (collisionOccured) {
-                    blockList.remove(blockToBeRemoved);
-                    break;
+                    if (collisionOccured) {
+                        //Traci ostatnie zycie
+                        if (collidedBlock.getLives() == 1) {
+                            blockList.remove(collidedBlock);
+                        }
+                        else {
+                            if (collidedBlock.getLives() == 3) {
+                                prizeList.add(new Prize(collidedBlock.getPosX(), collidedBlock.getPosY(), 0, prizeBitmap));
+                            }
+                            collidedBlock.tierDown();
+                        }
+                        //Predkosc pilki rosnie
+                        ball.setSpeed(ball.getSpeed()+1);
+                        break;
+                    }
                 }
             }
         }
         ball.moveBall();
+
+        //Obsluga nagrod
+
+        //Zderzenie z paletka
+        List<Prize> caughtPrizes = new ArrayList<>();
+        for (Prize prize : prizeList) {
+            Rect rPrize = prize.getRect();
+            if (rPrize.intersect(rPlayer)) {
+                caughtPrizes.add(prize);
+            }
+        }
+        for (Prize prize : caughtPrizes) {
+            prizeList.remove(prize);
+        }
+        for (Prize prize : prizeList) {
+            prize.move();
+        }
         super.invalidate();
     }
 

@@ -20,6 +20,12 @@ class Block {
                 posX + width/2, posY + height/2);
     }
 
+    public void tierDown() {
+        int index = GameView.blockTierList.indexOf(this.bitmap);
+        this.bitmap = GameView.blockTierList.get(--index);
+        this.lives -= 1;
+    }
+
     public int getValue() {
         return value;
     }
@@ -58,5 +64,13 @@ class Block {
 
     public Bitmap getBitmap() {
         return this.bitmap;
+    }
+
+    public int getPosX() {
+        return posX;
+    }
+
+    public int getPosY() {
+        return posY;
     }
 }
