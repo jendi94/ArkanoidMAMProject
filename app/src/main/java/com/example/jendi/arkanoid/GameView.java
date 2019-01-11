@@ -58,7 +58,7 @@ class GameView extends View {
         super.onDraw(canvas);
         if (isSetup) {
             width = getWidth();
-            height = getHeight() - 4;//wyrownanie ekrany dla wygody
+            height = getHeight() - 4;//wyrownanie ekrany dla wygody, wspanialy przyklad antywzorca MAGIC NUMBER :)
             xCenter = width / 2;
             yCenter = height / 2;
             player = new Player(xCenter, height - 200);
@@ -158,41 +158,6 @@ class GameView extends View {
         ball.moveBall();
         super.invalidate();
     }
-
-//    private int checkCollisionSide(Block block, Ball ball) {
-//        Rect rBall = ball.getRect();
-//        Rect rBlock = block.getRect();
-//        //Pilka leci z gory
-//        if (ball.getDirY() == 1) {
-//            //Od lewej sciany
-//            if (rBall.left < rBlock.left && rBall.right < rBlock.left) {
-//                return LEFT;
-//            }
-//            //Od prawej
-//            else if (rBall.left > rBlock.right && rBall.right > rBlock.right) {
-//                return RIGHT;
-//            }
-//            //Od gornej
-//            else {
-//                return TOP;
-//            }
-//        }
-//        //Pilka leci z dolu
-//        else {
-//            //Od lewej
-//            if (rBall.left < rBlock.left && rBall.right < rBlock.left) {
-//                return LEFT;
-//            }
-//            //Od prawej
-//            else if (rBall.left > rBlock.right && rBall.right > rBlock.right) {
-//                return RIGHT;
-//            }
-//            //Od dolnej
-//            else {
-//                return BOTTOM;
-//            }
-//        }
-//    }
 
     private int checkCollisionSide(Block block, Ball ball) {
         //Pomocnicze prostokaty
