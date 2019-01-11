@@ -1,15 +1,15 @@
 package com.example.jendi.arkanoid;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import static java.lang.StrictMath.abs;
@@ -29,6 +29,7 @@ class GameView extends View {
     private Paint backgroundPaint;
     private Paint elementPaint;
     private List<Block> blockList;
+    private Rect background;
 
     public GameView(Context context) {
         super(context);
@@ -57,26 +58,28 @@ class GameView extends View {
         super.onDraw(canvas);
         if (isSetup) {
             width = getWidth();
-            height = getHeight();
-            xCenter = width/2;
-            yCenter = height/2;
+            height = getHeight() - 4;//wyrownanie ekrany dla wygody
+            xCenter = width / 2;
+            yCenter = height / 2;
             player = new Player(xCenter, height - 200);
             ball = new Ball(xCenter, yCenter);
             backgroundPaint = new Paint();
-            backgroundPaint.setARGB(255,0,0,0);
+            backgroundPaint.setARGB(255, 0, 0, 0);
             elementPaint = new Paint();
             elementPaint.setARGB(255, 255, 255, 255);
             blockList = new ArrayList<>();
-            for (int i = 27; i < width; i += 54) {
-                for(int q = 20; q < 200; q += 40) {
-                    blockList.add(new Block(i, q));
+            for (int i = 54; i < width; i += 108) {
+                for (int q = 20; q < 200; q += 40) {
+                    BlockType type = BlockType.YELLOW;
+                    blockList.add(new Block(i, q, type.getLives(), BitmapFactory.decodeResource(getResources(), type.getColor())));
                 }
+                background = new Rect(0, 0, width, height);
+                isSetup = false;
             }
-            isSetup = false;
         }
 
         //Background
-        canvas.drawRect(0, 0, width, height, backgroundPaint);
+        canvas.drawRect(background, backgroundPaint);
 
         //Player
         canvas.drawRect(player.getRect(), elementPaint);
@@ -86,102 +89,157 @@ class GameView extends View {
 
         //Blocks
         for (Block b : blockList) {
-            canvas.drawRect(b.getRect(), b.getPaint());
+            canvas.drawBitmap(b.getBitmap(), null, b.getRect(), null);
         }
 
         //Invalidate view
         invalidate();
     }
 
+
     @Override
     public void invalidate() {
 
-        boolean blockCollisionFound = false;
-        Block collidedBlock = null;
-
-        //Pilka ze stanem, w ktorym znajduje sie w momencie kolizji
+        //Pozycja i stan, w ktorej bedzie pilka w nastepnej klatce
+        int nextPosX = ball.getPosX() + (ball.getDirX() * ball.getSpeed());
+        int nextPosY = ball.getPosY() + (ball.getDirY() * ball.getSpeed());
         Ball nextBall = new Ball(ball);
-        int newPosX = ball.getPosX() + ball.getSpeed()*ball.getDirX();
-        int newPosY = ball.getPosY() + ball.getSpeed()*ball.getDirY();
-        nextBall.setPosX(newPosX);
-        nextBall.setPosY(newPosY);
+        nextBall.setPosX(nextPosX);
+        nextBall.setPosY(nextPosY);
 
-        //Sprawdzenie wszystkich blokow
-        for (Block block : blockList) {
-            if (nextBall.getRect().intersect(block.getRect())) {
-                blockCollisionFound = true;
-                collidedBlock = block;
-                int side = checkCollisionSide(block, ball);
-                switch (side) {
-                    case LEFT:
-                    case RIGHT:
-                        ball.reboundHorizontally();
-                        break;
-                    case TOP:
-                    case BOTTOM:
-                        ball.reboundVertically();
-                        ball.setPosY(ball.getPosY() + ball.getSpeed()*ball.getDirY());
-                        break;
+        //Pomocnicze prostokaty
+        Rect rNextBall = nextBall.getRect();
+        Rect rPlayer = player.getRect();
+
+        //Kolizja ze scianami
+        if (!background.contains(rNextBall))
+        {
+            if (rNextBall.top < background.top) {
+                ball.reboundVertically();
+            }
+            else if (rNextBall.bottom > background.bottom) {
+                ball.reset(xCenter, yCenter);
+            }
+            else {
+                ball.reboundHorizontally();
+            }
+        }
+        //Kolizja z paletka
+        else if (rNextBall.intersect(rPlayer)) {
+            ball.reboundVertically();
+        }
+        //Kolizja z bloczkami
+        else {
+            boolean collisionOccured = false;
+            Block blockToBeRemoved = null;
+            for (Block block : blockList) {
+                Rect rBlock = block.getRect();
+                if (rNextBall.intersect(rBlock)) {
+                    collisionOccured = true;
+                    blockToBeRemoved = block;
+                    int side = checkCollisionSide(block, ball);
+                    switch (side) {
+                        case LEFT:
+                        case RIGHT:
+                            ball.reboundHorizontally();
+                            break;
+                        case TOP:
+                        case BOTTOM:
+                            ball.reboundVertically();
+                            break;
+                    }
+                }
+                if (collisionOccured) {
+                    blockList.remove(blockToBeRemoved);
+                    break;
                 }
             }
-            if (blockCollisionFound) break;
         }
-
-        //Jesli byla kolizja to usuwam blok z tablicy
-        if (blockCollisionFound) {
-            blockList.remove(collidedBlock);
-        }
-
-        //Obsluga X
-        if (newPosX > width || newPosX < 0) {
-            ball.reboundHorizontally();
-        }
-        ball.setPosX(newPosX);
-
-        //Obsluga Y
-        if (ball.getRect().intersect(player.getRect()) || newPosY < 0) {
-            ball.reboundVertically();
-            ball.setPosY(ball.getPosY() + ball.getSpeed()*ball.getDirY());
-        }
-        else if (newPosY > height) {
-            ball.resetBall(width, height);
-        }
-        else {
-            ball.setPosY(newPosY);
-        }
-
+        ball.moveBall();
         super.invalidate();
     }
 
+//    private int checkCollisionSide(Block block, Ball ball) {
+//        Rect rBall = ball.getRect();
+//        Rect rBlock = block.getRect();
+//        //Pilka leci z gory
+//        if (ball.getDirY() == 1) {
+//            //Od lewej sciany
+//            if (rBall.left < rBlock.left && rBall.right < rBlock.left) {
+//                return LEFT;
+//            }
+//            //Od prawej
+//            else if (rBall.left > rBlock.right && rBall.right > rBlock.right) {
+//                return RIGHT;
+//            }
+//            //Od gornej
+//            else {
+//                return TOP;
+//            }
+//        }
+//        //Pilka leci z dolu
+//        else {
+//            //Od lewej
+//            if (rBall.left < rBlock.left && rBall.right < rBlock.left) {
+//                return LEFT;
+//            }
+//            //Od prawej
+//            else if (rBall.left > rBlock.right && rBall.right > rBlock.right) {
+//                return RIGHT;
+//            }
+//            //Od dolnej
+//            else {
+//                return BOTTOM;
+//            }
+//        }
+//    }
+
     private int checkCollisionSide(Block block, Ball ball) {
+        //Pomocnicze prostokaty
         Rect rBall = ball.getRect();
         Rect rBlock = block.getRect();
-        //Pilka leci z gory
-        if (ball.getDirY() == 1) {
-            //Od lewej sciany
-            if (rBall.left < rBlock.left && rBall.right < rBlock.left) {
+        int offsetValue = ball.getSpeed();
+
+        //Lece z gory od lewej
+        if ((ball.getDirX() == 1) && (ball.getDirY() == 1)) {
+            rBall.offset(offsetValue, 0);
+            //Odbijam sie od lewej
+            if (rBall.intersect(rBlock)) {
                 return LEFT;
             }
-            //Od prawej
-            else if (rBall.left > rBlock.right && rBall.right > rBlock.right) {
-                return RIGHT;
-            }
-            //Od gornej
             else {
                 return TOP;
             }
         }
-        //Pilka leci z dolu
-        else {
-            //Od lewej
-            if (rBall.left < rBlock.left && rBall.right < rBlock.left) {
-                return LEFT;
-            }
-            //Od prawej
-            else if (rBall.left > rBlock.right && rBall.right > rBlock.right) {
+        //Lece z gory od prawej
+        else if ((ball.getDirX() == -1) && (ball.getDirY() == 1)) {
+            rBall.offset(-offsetValue, 0);
+            //Odbijam sie od prawej
+            if (rBall.intersect(rBlock)) {
                 return RIGHT;
             }
-            //Od dolnej
+            else {
+                return TOP;
+            }
+        }
+        //Lece od dolu z lewej
+        else if ((ball.getDirX() == 1) && (ball.getDirY() == -1)) {
+            rBall.offset(offsetValue, 0);
+            //Odbijam sie od lewej
+            if (rBall.intersect(rBlock)) {
+                return LEFT;
+            }
+            else {
+                return BOTTOM;
+            }
+        }
+        //Lece od dolu z prawej
+        else {
+            rBall.offset(-offsetValue, 0);
+            //Odbijam sie od prawej
+            if (rBall.intersect(rBlock)) {
+                return RIGHT;
+            }
             else {
                 return BOTTOM;
             }

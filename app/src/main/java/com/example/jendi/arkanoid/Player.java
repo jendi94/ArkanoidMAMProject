@@ -3,7 +3,7 @@ package com.example.jendi.arkanoid;
 import android.graphics.Rect;
 
 class Player {
-    private Rect rect;
+    private Rect rect, insideRect;
     private int posX, posY, score;
 
     Player(int x, int y) {
@@ -32,10 +32,6 @@ class Player {
     public void setPosX(int posX) {
         this.posX = posX;
         refreshRect();
-    }
-
-    public void setPosY(int posY) {
-        this.posY = posY;
     }
 
     private void refreshRect() {

@@ -1,43 +1,23 @@
 package com.example.jendi.arkanoid;
 
-import android.graphics.Color;
-import android.graphics.Paint;
+import android.graphics.Bitmap;
 import android.graphics.Rect;
 
-import static android.graphics.Color.*;
-
 class Block {
-    private int posX, posY, value, width, height;
+    private int posX, posY, value, width, height, lives;
     private Rect rect;
-    private Paint paint;
-    private int[] colors = {BLUE, RED, GREEN, YELLOW, MAGENTA, CYAN};
+    private Bitmap bitmap;
 
-    Block(int x, int y) {
+    Block(int x, int y, int lives, Bitmap bitmap) {
         this.posX = x;
         this.posY = y;
         this.width = 108;
         this.height = 40;
         this.value = 1;
+        this.lives = lives;
+        this.bitmap = bitmap;
         this.rect = new Rect(posX - width/2, posY - height/2,
                 posX + width/2, posY + height/2);
-        this.paint = new Paint();
-        this.paint.setColor(colors[(int)(Math.random()*6)]);
-    }
-
-    public int getPosX() {
-        return posX;
-    }
-
-    public void setPosX(int posX) {
-        this.posX = posX;
-    }
-
-    public int getPosY() {
-        return posY;
-    }
-
-    public void setPosY(int posY) {
-        this.posY = posY;
     }
 
     public int getValue() {
@@ -68,15 +48,15 @@ class Block {
         return rect;
     }
 
-    public void setRect(Rect rect) {
-        this.rect = rect;
+    public int getLives() {
+        return lives;
     }
 
-    public Paint getPaint() {
-        return paint;
+    public void setLives(int lives) {
+        this.lives = lives;
     }
 
-    public void setPaint(Paint paint) {
-        this.paint = paint;
+    public Bitmap getBitmap() {
+        return this.bitmap;
     }
 }

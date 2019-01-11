@@ -11,7 +11,7 @@ class Ball {
         this.posY = y;
         this.dirX = 1;
         this.dirY = 1;
-        this.speed = 5;
+        this.speed = 10;
         this.rect = new Rect(posX - 10, posY - 10, posX + 10, posY + 10);
     }
 
@@ -54,24 +54,12 @@ class Ball {
         this.rect = new Rect(posX-10, posY-10,posX+10, posY+10);
     }
 
-    public void setRect(Rect rect) {
-        this.rect = rect;
-    }
-
     public int getDirX() {
         return dirX;
     }
 
-    public void setDirX(int dirX) {
-        this.dirX = dirX;
-    }
-
     public int getDirY() {
         return dirY;
-    }
-
-    public void setDirY(int dirY) {
-        this.dirY = dirY;
     }
 
     public void setSpeed(int speed) {
@@ -86,12 +74,18 @@ class Ball {
         this.dirX*=-1;
     }
 
-    public void resetBall(int x, int y) {
+    public void reset(int x, int y) {
         this.posX = x/2;
         this.posY = y/2;
         this.dirX = 1;
         this.dirY = 1;
-        this.speed = 5;
+        this.speed = 10;
+        refreshRect();
+    }
+
+    public void moveBall() {
+        this.posX += this.dirX * this.speed;
+        this.posY += this.dirY * this.speed;
         refreshRect();
     }
 }
