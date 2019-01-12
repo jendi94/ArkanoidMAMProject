@@ -12,21 +12,13 @@ class Player {
         this.posX = x;
         this.posY = y;
         this.score = 0;
-        this.rect = new Rect(posX - 100, posY - 10, posX + 100, posY + 10);
+        this.rect = new Rect(posX - 120, posY - 40, posX + 120, posY + 40);
         this.bitmap = bitmap;
         this.lives = 3;
     }
 
     public Rect getRect() {
         return rect;
-    }
-
-    public int getPosX() {
-        return posX;
-    }
-
-    public int getPosY() {
-        return posY;
     }
 
     public int getScore() {
@@ -39,23 +31,11 @@ class Player {
     }
 
     private void refreshRect() {
-        this.rect = new Rect(posX - 100, posY - 10, posX + 100, posY + 10);
+        this.rect = new Rect(posX - 120, posY - 40, posX + 120, posY + 40);
     }
 
     public Bitmap getBitmap() {
         return bitmap;
-    }
-
-    public void setBitmap(Bitmap bitmap) {
-        this.bitmap = bitmap;
-    }
-
-    public void setRect(Rect rect) {
-        this.rect = rect;
-    }
-
-    public void setPosY(int posY) {
-        this.posY = posY;
     }
 
     public void setScore(int score) {

@@ -25,22 +25,6 @@ public class Prize {
         this.rect = new Rect(posX - 30, posY - 30, posX + 30, posY + 30);
     }
 
-    public int getPosX() {
-        return posX;
-    }
-
-    public void setPosX(int posX) {
-        this.posX = posX;
-    }
-
-    public int getPosY() {
-        return posY;
-    }
-
-    public void setPosY(int posY) {
-        this.posY = posY;
-    }
-
     public int getType() {
         return type;
     }
@@ -51,10 +35,6 @@ public class Prize {
 
     public Rect getRect() {
         return rect;
-    }
-
-    public void setRect(Rect rect) {
-        this.rect = rect;
     }
 
     public Bitmap getBitmap() {

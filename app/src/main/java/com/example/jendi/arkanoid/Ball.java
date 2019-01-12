@@ -1,18 +1,21 @@
 package com.example.jendi.arkanoid;
 
+import android.graphics.Bitmap;
 import android.graphics.Rect;
 
 class Ball {
     private Rect rect;
     private int posX, posY, dirX, dirY, speed;
+    private Bitmap bitmap;
 
-    Ball(int x, int y) {
+    Ball(int x, int y, Bitmap bitmap) {
         this.posX = x;
         this.posY = y;
         this.dirX = 1;
         this.dirY = 1;
         this.speed = 10;
         this.rect = new Rect(posX - 10, posY - 10, posX + 10, posY + 10);
+        this.bitmap = bitmap;
     }
 
     public Ball(Ball ball) {
@@ -51,7 +54,7 @@ class Ball {
     }
 
     private void refreshRect() {
-        this.rect = new Rect(posX-10, posY-10,posX+10, posY+10);
+        this.rect = new Rect(posX - 10, posY - 10,posX + 10, posY + 10);
     }
 
     public int getDirX() {
@@ -87,5 +90,9 @@ class Ball {
         this.posX += this.dirX * this.speed;
         this.posY += this.dirY * this.speed;
         refreshRect();
+    }
+
+    public Bitmap getBitmap() {
+        return bitmap;
     }
 }

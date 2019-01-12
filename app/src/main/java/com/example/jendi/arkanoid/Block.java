@@ -34,14 +34,6 @@ class Block {
         this.value = value;
     }
 
-    public int getWidth() {
-        return width;
-    }
-
-    public void setWidth(int width) {
-        this.width = width;
-    }
-
     public int getHeight() {
         return height;
     }
@@ -56,10 +48,6 @@ class Block {
 
     public int getLives() {
         return lives;
-    }
-
-    public void setLives(int lives) {
-        this.lives = lives;
     }
 
     public Bitmap getBitmap() {

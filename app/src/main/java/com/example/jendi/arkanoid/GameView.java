@@ -17,8 +17,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.StrictMath.abs;
-
 class GameView extends View {
     private static final int LEFT = 0;
     private static final int RIGHT = 1;
@@ -40,6 +38,7 @@ class GameView extends View {
     private Bitmap prizeBitmap;
     private boolean isGameOver;
     private int gameLevel;
+    private Bitmap ballBitmap;
 
     public GameView(Context context, int level) {
         super(context);
@@ -77,7 +76,8 @@ class GameView extends View {
             xCenter = width / 2;
             yCenter = height / 2;
             player = new Player(xCenter, height - 200, BitmapFactory.decodeResource(getResources(), R.drawable.player));
-            ball = new Ball(xCenter, yCenter);
+            ballBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ball);
+            ball = new Ball(xCenter, yCenter, ballBitmap);
             backgroundPaint = new Paint();
             backgroundPaint.setARGB(255, 0, 0, 0);
             elementPaint = new Paint();
@@ -136,11 +136,12 @@ class GameView extends View {
         }
         else {
             //Player
-            canvas.drawRect(player.getRect(), elementPaint);
-            //canvas.drawBitmap(player.getBitmap(), null, player.getRect(), null);
+            //canvas.drawRect(player.getRect(), elementPaint);
+            canvas.drawBitmap(player.getBitmap(), null, player.getRect(), null);
 
             //Ball
-            canvas.drawRect(ball.getRect(), elementPaint);
+            //canvas.drawRect(ball.getRect(), elementPaint);
+            canvas.drawBitmap(ball.getBitmap(), null, ball.getRect(), null);
 
             //Blocks
             for (Block b : blockList) {
@@ -192,7 +193,6 @@ class GameView extends View {
         invalidate();
     }
 
-
     @Override
     public void invalidate() {
 
@@ -226,7 +226,16 @@ class GameView extends View {
         }
         //Kolizja z paletka
         else if (rNextBall.intersect(rPlayer)) {
-            ball.reboundVertically();
+            int side = checkCollisionSide(player, ball);
+            switch (side) {
+                case LEFT:
+                case RIGHT:
+                    ball.reboundHorizontally();
+                    break;
+                case TOP:
+                    ball.reboundVertically();
+                    break;
+            }
         }
         //Kolizja z bloczkami
         else {
@@ -343,6 +352,36 @@ class GameView extends View {
             }
             else {
                 return BOTTOM;
+            }
+        }
+    }
+
+    private int checkCollisionSide(Player player, Ball ball) {
+        //Pomocnicze prostokaty
+        Rect rBall = ball.getRect();
+        Rect rPlayer = player.getRect();
+        int offsetValue = ball.getSpeed();
+
+        //Lece z gory od lewej
+        if ((ball.getDirX() == 1) && (ball.getDirY() == 1)) {
+            rBall.offset(offsetValue, 0);
+            //Odbijam sie od lewej
+            if (rBall.intersect(rPlayer)) {
+                return LEFT;
+            }
+            else {
+                return TOP;
+            }
+        }
+        //Lece z gory od prawej
+        else  {
+            rBall.offset(-offsetValue, 0);
+            //Odbijam sie od prawej
+            if (rBall.intersect(rPlayer)) {
+                return RIGHT;
+            }
+            else {
+                return TOP;
             }
         }
     }
