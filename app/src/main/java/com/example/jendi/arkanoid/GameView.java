@@ -74,7 +74,7 @@ class GameView extends View {
             case MotionEvent.ACTION_DOWN:
                 break;
             case MotionEvent.ACTION_MOVE:
-                if (event.getX() - 100 > 0 && event.getX() + 100 < width) {
+                if (event.getX() - 120 > 0 && event.getX() + 120 < width) {
                     player.setPosX((int) event.getX(pointerIndex));
                 }
                 break;
