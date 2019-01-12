@@ -6,7 +6,7 @@ import android.graphics.Rect;
 class Player {
     private Bitmap bitmap;
     private Rect rect;
-    private int posX, posY, score;
+    private int posX, posY, score, lives;
 
     Player(int x, int y, Bitmap bitmap) {
         this.posX = x;
@@ -14,6 +14,7 @@ class Player {
         this.score = 0;
         this.rect = new Rect(posX - 100, posY - 10, posX + 100, posY + 10);
         this.bitmap = bitmap;
+        this.lives = 3;
     }
 
     public Rect getRect() {
@@ -43,5 +44,29 @@ class Player {
 
     public Bitmap getBitmap() {
         return bitmap;
+    }
+
+    public void setBitmap(Bitmap bitmap) {
+        this.bitmap = bitmap;
+    }
+
+    public void setRect(Rect rect) {
+        this.rect = rect;
+    }
+
+    public void setPosY(int posY) {
+        this.posY = posY;
+    }
+
+    public void setScore(int score) {
+        this.score = score;
+    }
+
+    public int getLives() {
+        return lives;
+    }
+
+    public void setLives(int lives) {
+        this.lives = lives;
     }
 }

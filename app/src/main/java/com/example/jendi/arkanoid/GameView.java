@@ -13,7 +13,6 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +38,13 @@ class GameView extends View {
     private Rect background;
     private ArrayList<Prize> prizeList;
     private Bitmap prizeBitmap;
+    private boolean isGameOver;
+    private int gameLevel;
+
+    public GameView(Context context, int level) {
+        super(context);
+        gameLevel = level;
+    }
 
     public GameView(Context context) {
         super(context);
@@ -76,6 +82,7 @@ class GameView extends View {
             backgroundPaint.setARGB(255, 0, 0, 0);
             elementPaint = new Paint();
             elementPaint.setARGB(255, 255, 255, 255);
+            elementPaint.setTextSize(50);
             blockList = new ArrayList<>();
             prizeList = new ArrayList<>();
             blockTierList = new ArrayList<>();
@@ -83,11 +90,23 @@ class GameView extends View {
             blockTierList.add(BitmapFactory.decodeResource(getResources(), R.drawable.orange_block));
             blockTierList.add(BitmapFactory.decodeResource(getResources(), R.drawable.red_block));
             prizeBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.prize);
-            InputStream inputStream = getResources().openRawResource(R.raw.level1);
+            InputStream inputStream = getResources().openRawResource(R.raw.levels);
             try {
                 String jsonString = IOUtils.toString(inputStream);
                 JSONObject jsonObject = new JSONObject(jsonString);
-                JSONArray array= jsonObject.getJSONArray("blocks");
+                JSONArray array = null;
+                switch (gameLevel) {
+                    case 1:
+                        array= jsonObject.getJSONArray("levelOne");
+                        break;
+                    case 2:
+                        array= jsonObject.getJSONArray("levelTwo");
+                        break;
+                    case 3:
+                        array = jsonObject.getJSONArray("levelThree");
+                        break;
+                }
+
                 for (int i =0; i < array.length(); i++) {
                     int value = array.getInt(i);
                     if (value == 0) {
@@ -111,22 +130,62 @@ class GameView extends View {
         //Background
         canvas.drawRect(background, backgroundPaint);
 
-        //Player
-        canvas.drawRect(player.getRect(), elementPaint);
-        //canvas.drawBitmap(player.getBitmap(), null, player.getRect(), null);
-
-        //Ball
-        canvas.drawRect(ball.getRect(), elementPaint);
-
-        //Blocks
-        for (Block b : blockList) {
-            if (b != null) {
-                canvas.drawBitmap(b.getBitmap(), null, b.getRect(), null);
-            }
+        if (isGameOver) {
+            elementPaint.setTextSize(180);
+            canvas.drawText("GAME OVER", xCenter - 500, yCenter, elementPaint);
         }
+        else {
+            //Player
+            canvas.drawRect(player.getRect(), elementPaint);
+            //canvas.drawBitmap(player.getBitmap(), null, player.getRect(), null);
 
-        for (Prize prize : prizeList) {
-            canvas.drawBitmap(prize.getBitmap(), null, prize.getRect(), null);
+            //Ball
+            canvas.drawRect(ball.getRect(), elementPaint);
+
+            //Blocks
+            for (Block b : blockList) {
+                if (b != null) {
+                    canvas.drawBitmap(b.getBitmap(), null, b.getRect(), null);
+                }
+            }
+
+            //Prizes
+            for (Prize prize : prizeList) {
+                canvas.drawBitmap(prize.getBitmap(), null, prize.getRect(), null);
+            }
+
+            canvas.drawText("S",10, yCenter, elementPaint);
+            canvas.drawText("C",10, yCenter + 50, elementPaint);
+            canvas.drawText("O",10, yCenter + 100, elementPaint);
+            canvas.drawText("R",10, yCenter + 150, elementPaint);
+            canvas.drawText("E",10, yCenter + 200, elementPaint);
+
+            if (player.getScore() < 10) {
+                canvas.drawText(String.valueOf(player.getScore()), 10, yCenter + 300, elementPaint);
+            }
+            else if (player.getScore() < 100) {
+                canvas.drawText(String.valueOf(player.getScore()/10), 10, yCenter + 300, elementPaint);
+                canvas.drawText(String.valueOf(player.getScore()%10), 10, yCenter + 350, elementPaint);
+            }
+            else {
+                canvas.drawText(String.valueOf(player.getScore()/100), 10, yCenter + 300, elementPaint);
+                canvas.drawText(String.valueOf((player.getScore()%100)/10), 10, yCenter + 350, elementPaint);
+                canvas.drawText(String.valueOf(player.getScore()%10), 10, yCenter + 400, elementPaint);
+            }
+
+            canvas.drawText("L", width - 50, yCenter, elementPaint);
+            canvas.drawText("I", width - 50, yCenter + 50, elementPaint);
+            canvas.drawText("V", width - 50, yCenter + 100, elementPaint);
+            canvas.drawText("E", width - 50, yCenter + 150, elementPaint);
+            canvas.drawText("S", width - 50, yCenter + 200, elementPaint);
+
+            if (player.getLives() < 10) {
+                canvas.drawText(String.valueOf(player.getLives()), width - 50, yCenter + 300, elementPaint);
+            }
+            else if (player.getLives() < 100) {
+                canvas.drawText(String.valueOf(player.getLives()/10), width - 50, yCenter + 300, elementPaint);
+                canvas.drawText(String.valueOf(player.getLives()%10), width - 50, yCenter + 350, elementPaint);
+            }
         }
 
         //Invalidate view
@@ -156,6 +215,10 @@ class GameView extends View {
             }
             else if (rNextBall.bottom > background.bottom) {
                 ball.reset(xCenter, yCenter);
+                player.setLives(player.getLives()-1);
+                if (player.getLives() == 0) {
+                    isGameOver = true;
+                }
             }
             else {
                 ball.reboundHorizontally();
@@ -190,16 +253,21 @@ class GameView extends View {
                     if (collisionOccured) {
                         //Traci ostatnie zycie
                         if (collidedBlock.getLives() == 1) {
+                            player.setScore(player.getScore()+5);
                             blockList.remove(collidedBlock);
                         }
                         else {
                             if (collidedBlock.getLives() == 3) {
+                                player.setScore(player.getScore() + 15);
                                 prizeList.add(new Prize(collidedBlock.getPosX(), collidedBlock.getPosY(), 0, prizeBitmap));
+                            }
+                            else {
+                                player.setScore(player.getScore() + 10);
                             }
                             collidedBlock.tierDown();
                         }
                         //Predkosc pilki rosnie
-                        ball.setSpeed(ball.getSpeed()+1);
+                        ball.setSpeed(ball.getSpeed() + 1);
                         break;
                     }
                 }
@@ -218,6 +286,7 @@ class GameView extends View {
             }
         }
         for (Prize prize : caughtPrizes) {
+            player.setScore(player.getScore() + 50);
             prizeList.remove(prize);
         }
         for (Prize prize : prizeList) {
