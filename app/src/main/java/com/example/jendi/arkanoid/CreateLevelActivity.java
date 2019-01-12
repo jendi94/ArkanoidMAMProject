@@ -32,7 +32,10 @@ public class CreateLevelActivity extends AppCompatActivity {
                 EditText editText = findViewById(R.id.editText);
                 if (editText != null) {
                     Intent intent = new Intent(getApplicationContext(), GameActivity.class);
-                    intent.putExtra("array", editText.getText().toString());
+                    String toSend = editText.getText().toString();
+                    toSend = toSend.replace(" ", "");
+                    toSend = toSend.replace("\n", "");
+                    intent.putExtra("array", toSend);
                     intent.putExtra("custom", true);
                     startActivity(intent);
                 }

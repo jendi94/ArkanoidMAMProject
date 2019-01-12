@@ -291,6 +291,9 @@ class GameView extends View {
         }
         //Kolizja z paletka
         else if (rNextBall.intersect(rPlayer)) {
+            if (ball.getSpeed() < 25) {
+                ball.setSpeed(ball.getSpeed() + 1);
+            }
             int side = checkCollisionSide(player, ball);
             switch (side) {
                 case LEFT:
@@ -341,9 +344,6 @@ class GameView extends View {
                             collidedBlock.tierDown();
                         }
                         //Predkosc pilki rosnie - maksymalnie 25
-                        if (ball.getSpeed() < 25) {
-                            ball.setSpeed(ball.getSpeed() + 1);
-                        }
                         break;
                     }
                 }
