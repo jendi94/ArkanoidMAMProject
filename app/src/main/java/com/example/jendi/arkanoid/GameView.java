@@ -2,7 +2,6 @@ package com.example.jendi.arkanoid;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -18,6 +17,7 @@ import org.json.JSONObject;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 class GameView extends View {
     private static final int LEFT = 0;
@@ -47,11 +47,18 @@ class GameView extends View {
     private boolean isLevelFinished = false;
     private boolean isFirstTimeNextLevelCount = true;
     private long nextLevelTime;
+    private String customLevelString;
 
     public GameView(Context context, int level) {
         super(context);
         this.context = context;
         gameLevel = level;
+    }
+
+    public GameView(Context context, String array) {
+        super(context);
+        this.context = context;
+        this.customLevelString = array;
     }
 
     public GameView(Context context) {
@@ -99,38 +106,63 @@ class GameView extends View {
             blockTierList.add(BitmapFactory.decodeResource(getResources(), R.drawable.orange_block));
             blockTierList.add(BitmapFactory.decodeResource(getResources(), R.drawable.red_block));
             prizeBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.prize);
-            InputStream inputStream = getResources().openRawResource(R.raw.levels);
-            try {
-                String jsonString = IOUtils.toString(inputStream);
-                JSONObject jsonObject = new JSONObject(jsonString);
-                JSONArray array = null;
-                switch (gameLevel) {
-                    case 1:
-                        array= jsonObject.getJSONArray("levelOne");
-                        break;
-                    case 2:
-                        array= jsonObject.getJSONArray("levelTwo");
-                        break;
-                    case 3:
-                        array = jsonObject.getJSONArray("levelThree");
-                        break;
-                }
 
-                for (int i =0; i < array.length(); i++) {
-                    int value = array.getInt(i);
+            //Wczytywanie poziomu
+
+            if (customLevelString == null) {
+                InputStream inputStream = getResources().openRawResource(R.raw.levels);
+                try {
+                    String jsonString = IOUtils.toString(inputStream);
+                    JSONObject jsonObject = new JSONObject(jsonString);
+                    JSONArray array = null;
+                    switch (gameLevel) {
+                        case 1:
+                            array= jsonObject.getJSONArray("levelOne");
+                            break;
+                        case 2:
+                            array= jsonObject.getJSONArray("levelTwo");
+                            break;
+                        case 3:
+                            array = jsonObject.getJSONArray("levelThree");
+                            break;
+                    }
+
+                    for (int i =0; i < array.length(); i++) {
+                        int value = array.getInt(i);
+                        if (value == 0) {
+                            blockList.add(null);
+                        }
+                        else {
+                            int x = 54 + (i%10)*108;
+                            int y = 20 + (i/10)*40;
+                            blockList.add(new Block(x,y,value,blockTierList.get(value-1)));
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                IOUtils.closeQuietly(inputStream);
+            }
+            //Tutaj czytamy level
+            else {
+                StringTokenizer tokenizer = new StringTokenizer(customLevelString, ",");
+                List<Integer> customLevelArray = new ArrayList<>();
+                while (tokenizer.hasMoreElements()) {
+                    String element = tokenizer.nextToken();
+                    customLevelArray.add(Integer.valueOf(element));
+                }
+                for (int i = 0; i < customLevelArray.size(); i++) {
+                    int value = customLevelArray.get(i);
                     if (value == 0) {
                         blockList.add(null);
-                    }
-                    else {
-                        int x = 54 + (i%10)*108;
-                        int y = 20 + (i/10)*40;
-                        blockList.add(new Block(x,y,value,blockTierList.get(value-1)));
+                    } else {
+                        int x = 54 + (i % 10) * 108;
+                        int y = 20 + (i / 10) * 40;
+                        blockList.add(new Block(x, y, value, blockTierList.get(value - 1)));
                     }
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
-            IOUtils.closeQuietly(inputStream);
+
 
             background = new Rect(0, 0, width, height);
             isSetup = false;
@@ -308,8 +340,10 @@ class GameView extends View {
                             }
                             collidedBlock.tierDown();
                         }
-                        //Predkosc pilki rosnie
-                        ball.setSpeed(ball.getSpeed() + 1);
+                        //Predkosc pilki rosnie - maksymalnie 25
+                        if (ball.getSpeed() < 25) {
+                            ball.setSpeed(ball.getSpeed() + 1);
+                        }
                         break;
                     }
                 }
@@ -329,6 +363,7 @@ class GameView extends View {
         }
         for (Prize prize : caughtPrizes) {
             player.setScore(player.getScore() + 50);
+            player.setLives(player.getLives() + 1);
             prizeList.remove(prize);
         }
         for (Prize prize : prizeList) {

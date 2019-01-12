@@ -14,10 +14,18 @@ public class GameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_game);
-        layout = findViewById(R.id.layout);
+        layout = findViewById(R.id.layoutGame);
         Intent intent = getIntent();
-        int level = intent.getIntExtra("level", 0);
-        GameView gameView = new GameView(GameActivity.this, level);
-        layout.addView(gameView);
+        boolean isCustom = intent.getBooleanExtra("custom", false);
+        if (isCustom) {
+            String levelShape = intent.getStringExtra("array");
+            GameView gameView = new GameView(GameActivity.this, levelShape);
+            layout.addView(gameView);
+        }
+        else {
+            int level = intent.getIntExtra("level", 0);
+            GameView gameView = new GameView(GameActivity.this, level);
+            layout.addView(gameView);
+        }
     }
 }

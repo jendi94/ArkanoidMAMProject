@@ -14,7 +14,7 @@ class Ball {
         this.dirX = 1;
         this.dirY = 1;
         this.speed = 10;
-        this.rect = new Rect(posX - 10, posY - 10, posX + 10, posY + 10);
+        this.rect = new Rect(posX - 15, posY - 15, posX + 15, posY + 15);
         this.bitmap = bitmap;
     }
 
@@ -54,7 +54,7 @@ class Ball {
     }
 
     private void refreshRect() {
-        this.rect = new Rect(posX - 10, posY - 10,posX + 10, posY + 10);
+        this.rect = new Rect(posX - 15, posY - 15,posX + 15, posY + 15);
     }
 
     public int getDirX() {

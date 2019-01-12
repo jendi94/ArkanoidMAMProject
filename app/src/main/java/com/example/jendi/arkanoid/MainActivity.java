@@ -12,7 +12,7 @@ public class MainActivity extends AppCompatActivity {
 
     int level = 0;
     ConstraintLayout layout;
-    Button easy, medium, hard;
+    Button easy, medium, hard, createLevel;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -24,16 +24,24 @@ public class MainActivity extends AppCompatActivity {
         easy = findViewById(R.id.button);
         medium = findViewById(R.id.button2);
         hard = findViewById(R.id.button3);
+        createLevel = findViewById(R.id.button4);
+        final boolean isCustomLevel = false;
+
+        createLevel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), CreateLevelActivity.class);
+                startActivity(intent);
+            }
+        });
 
         easy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                easy.setVisibility(View.INVISIBLE);
-                medium.setVisibility(View.INVISIBLE);
-                hard.setVisibility(View.INVISIBLE);
                 level = 1;
                 Intent intentStartGame = new Intent(getApplicationContext(), GameActivity.class);
                 intentStartGame.putExtra("level", level);
+                intentStartGame.putExtra("custom", isCustomLevel);
                 startActivityForResult(intentStartGame, 100);
             }
         });
@@ -41,36 +49,28 @@ public class MainActivity extends AppCompatActivity {
         medium.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                easy.setVisibility(View.INVISIBLE);
-                medium.setVisibility(View.INVISIBLE);
-                hard.setVisibility(View.INVISIBLE);
                 level = 2;
-                Intent startGame = new Intent(getApplicationContext(), GameActivity.class);
-                startGame.putExtra("level", level);
-                startActivityForResult(startGame, 100);
+                Intent intentStartGame = new Intent(getApplicationContext(), GameActivity.class);
+                intentStartGame.putExtra("level", level);
+                intentStartGame.putExtra("custom", isCustomLevel);
+                startActivityForResult(intentStartGame, 100);
             }
         });
 
         hard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                easy.setVisibility(View.INVISIBLE);
-                medium.setVisibility(View.INVISIBLE);
-                hard.setVisibility(View.INVISIBLE);
                 level = 3;
-                Intent startGame = new Intent(getApplicationContext(), GameActivity.class);
-                startGame.putExtra("level", level);
-                startActivityForResult(startGame, 100);
+                Intent intentStartGame = new Intent(getApplicationContext(), GameActivity.class);
+                intentStartGame.putExtra("level", level);
+                intentStartGame.putExtra("custom", isCustomLevel);
+                startActivityForResult(intentStartGame, 100);
             }
         });
-
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        easy.setVisibility(View.VISIBLE);
-        medium.setVisibility(View.VISIBLE);
-        hard.setVisibility(View.VISIBLE);
     }
 }
