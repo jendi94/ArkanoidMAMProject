@@ -1,6 +1,8 @@
 package com.example.jendi.arkanoid;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -39,9 +41,16 @@ class GameView extends View {
     private boolean isGameOver;
     private int gameLevel;
     private Bitmap ballBitmap;
+    private Context context;
+    private long gameEndTime;
+    private  boolean isFirstTimeGameEndCount = true;
+    private boolean isLevelFinished = false;
+    private boolean isFirstTimeNextLevelCount = true;
+    private long nextLevelTime;
 
     public GameView(Context context, int level) {
         super(context);
+        this.context = context;
         gameLevel = level;
     }
 
@@ -131,8 +140,32 @@ class GameView extends View {
         canvas.drawRect(background, backgroundPaint);
 
         if (isGameOver) {
-            elementPaint.setTextSize(180);
-            canvas.drawText("GAME OVER", xCenter - 500, yCenter, elementPaint);
+            if (isFirstTimeGameEndCount) {
+                gameEndTime = System.currentTimeMillis();
+                isFirstTimeGameEndCount = false;
+            }
+            if (System.currentTimeMillis() > (gameEndTime + 2000)) {
+                Activity activity = (Activity) getContext();
+                activity.finish();
+            }
+            else{
+                elementPaint.setTextSize(180);
+                canvas.drawText("GAME OVER", xCenter - 500, yCenter, elementPaint);
+            }
+        }
+        else if (isLevelFinished) {
+            if (isFirstTimeNextLevelCount) {
+                nextLevelTime = System.currentTimeMillis();
+                isFirstTimeNextLevelCount = false;
+            }
+            if (System.currentTimeMillis() > (nextLevelTime + 2000)) {
+                Activity activity = (Activity) getContext();
+                activity.finish();
+            }
+            else {
+                elementPaint.setTextSize(180);
+                canvas.drawText("YOU WON", xCenter - 450, yCenter, elementPaint);
+            }
         }
         else {
             //Player
@@ -300,6 +333,16 @@ class GameView extends View {
         }
         for (Prize prize : prizeList) {
             prize.move();
+        }
+
+        boolean isLevelFinishedInvalidate = true;
+        for (Block block : blockList) {
+            if (block != null) {
+                isLevelFinishedInvalidate = false;
+            }
+        }
+        if (isLevelFinishedInvalidate) {
+            isLevelFinished = true;
         }
         super.invalidate();
     }

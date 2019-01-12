@@ -1,5 +1,6 @@
 package com.example.jendi.arkanoid;
 
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
@@ -27,52 +28,49 @@ public class MainActivity extends AppCompatActivity {
         easy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                easy.setVisibility(View.INVISIBLE);
+                medium.setVisibility(View.INVISIBLE);
+                hard.setVisibility(View.INVISIBLE);
                 level = 1;
-                GameView gameView = new GameView(MainActivity.this, level);
-                layout.addView(gameView);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        easy.setVisibility(View.INVISIBLE);
-                        medium.setVisibility(View.INVISIBLE);
-                        hard.setVisibility(View.INVISIBLE);
-                    }
-                });
+                Intent intentStartGame = new Intent(getApplicationContext(), GameActivity.class);
+                intentStartGame.putExtra("level", level);
+                startActivityForResult(intentStartGame, 100);
             }
         });
 
         medium.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                easy.setVisibility(View.INVISIBLE);
+                medium.setVisibility(View.INVISIBLE);
+                hard.setVisibility(View.INVISIBLE);
                 level = 2;
-                GameView gameView = new GameView(MainActivity.this, level);
-                layout.addView(gameView);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        easy.setVisibility(View.INVISIBLE);
-                        medium.setVisibility(View.INVISIBLE);
-                        hard.setVisibility(View.INVISIBLE);
-                    }
-                });
+                Intent startGame = new Intent(getApplicationContext(), GameActivity.class);
+                startGame.putExtra("level", level);
+                startActivityForResult(startGame, 100);
             }
         });
 
         hard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                easy.setVisibility(View.INVISIBLE);
+                medium.setVisibility(View.INVISIBLE);
+                hard.setVisibility(View.INVISIBLE);
                 level = 3;
-                GameView gameView = new GameView(MainActivity.this, level);
-                layout.addView(gameView);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        easy.setVisibility(View.INVISIBLE);
-                        medium.setVisibility(View.INVISIBLE);
-                        hard.setVisibility(View.INVISIBLE);
-                    }
-                });
+                Intent startGame = new Intent(getApplicationContext(), GameActivity.class);
+                startGame.putExtra("level", level);
+                startActivityForResult(startGame, 100);
             }
         });
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        easy.setVisibility(View.VISIBLE);
+        medium.setVisibility(View.VISIBLE);
+        hard.setVisibility(View.VISIBLE);
     }
 }
